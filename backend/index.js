@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
 let persons = [
   { 
     "id": 1,
@@ -32,6 +34,64 @@ app.get('/', (req, res) => {
 // Get all
 app.get('/api/persons', (req, res) => {
   res.json(persons);
+})
+
+// Get person
+app.get('/api/persons/:id', (req, res) => {
+  const id = +req.params.id;
+  const person = persons.find(p => p.id === id);
+
+  if (person) {
+    res.json(person)
+  } else {
+    res.status(404).end();
+  }
+})
+
+// Delete person
+app.delete('/api/persons/:id', (req, res) => {
+  const id = +req.params.id;
+  persons = persons.filter(p => p.id !== id);
+  console.log(persons);
+
+  res.status(204).end();
+})
+
+// Add person
+const generateId = () => {
+  return Math.floor((Math.random() * 1000))
+}
+
+app.post('/api/persons', (req, res) => {
+  const body = req.body;
+
+  if (!body.name) {
+    return res.status(400).json({
+      error: 'Name is missing'
+    })
+  }
+
+  if (!body.number) {
+    return res.status(400).json({
+      error: 'Number is missing'
+    })
+  }
+
+  if (persons.find(p => p.name === body.name)) {
+    return res.status(400).json({
+      error: 'Name already exists'
+    })
+  }
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number
+  }
+
+  persons = persons.concat(person);
+
+  res.json(person)
 })
 
 // Info page
