@@ -1,6 +1,10 @@
+require('dotenv').config();
+
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+
+const Person = require('./models/person');
 
 const app = express();
 
@@ -41,7 +45,9 @@ app.get('/', (req, res) => {
 
 // Get all
 app.get('/api/persons', (req, res) => {
-  res.json(persons);
+  Person.find({}).then(persons => {
+    res.json(persons);
+  })
 })
 
 // Get person
@@ -73,33 +79,18 @@ const generateId = () => {
 app.post('/api/persons', (req, res) => {
   const body = req.body;
 
-  if (!body.name) {
-    return res.status(400).json({
-      error: 'Name is missing'
-    })
+  if (body.name === undefined) {
+    return res.status(400).json({error: 'Name is missing'});
   }
 
-  if (!body.number) {
-    return res.status(400).json({
-      error: 'Number is missing'
-    })
-  }
-
-  if (persons.find(p => p.name === body.name)) {
-    return res.status(400).json({
-      error: 'Name already exists'
-    })
-  }
-
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number
-  }
+  })
 
-  persons = persons.concat(person);
-
-  res.json(person)
+  person.save().then(savedPerson => {
+    res.json(savedPerson);
+  })
 })
 
 // Info page
@@ -120,7 +111,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 })
