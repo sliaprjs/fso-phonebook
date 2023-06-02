@@ -6,9 +6,9 @@ if (process.argv.length < 3) {
 
 const password = process.argv[2];
 const personName = process.argv[3];
-const personPhone = process.argv[4];
+const personNumber = process.argv[4];
 
-const url = `mongodb+srv://sliaprjs:${password}@cluster0.lkqirus.mongodb.net/?retryWrites=true&w=majority`;
+const url = `mongodb+srv://sliaprjs:${password}@cluster0.lkqirus.mongodb.net/phonebook?retryWrites=true&w=majority`;
 
 mongoose.set('strictQuery', false);
 mongoose.connect(url);
@@ -22,10 +22,19 @@ const Person = mongoose.model('Person', personSchema);
 
 const person = new Person({
   name: personName || 'John Smith',
-  number: personPhone || '012'
+  number: personNumber || '012'
 });
 
-person.save().then(result => {
-  console.log(`Added ${personName} with number ${personNumber} to phonebook`);
-  mongoose.connection.close();
-})
+if (process.argv.length === 3) {
+  Person.find({}).then(result => {
+    result.forEach(person => {
+      console.log(person);
+    })
+    mongoose.connection.close();
+  })
+} else {
+  person.save().then(result => {
+    console.log(`Added ${personName} with number ${personNumber} to phonebook`);
+    mongoose.connection.close();
+  })
+}
