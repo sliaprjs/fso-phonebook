@@ -15,28 +15,14 @@ app.use(express.static('dist'));
 morgan.token('body', (req, res) => JSON.stringify(req.body));
 app.use(morgan(':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
 
-let persons = [
-  { 
-    "id": 1,
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-  },
-  { 
-    "id": 2,
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": 3,
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": 4,
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
+const errorHandler = (error, req, res, next) => {
+  if (error) {
+    return res.status(400).send({error: 'Wrong id'})
   }
-];
+  next(error);
+};
+
+
 
 // Main page
 app.get('/', (req, res) => {
@@ -63,12 +49,10 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 // Delete person
-app.delete('/api/persons/:id', (req, res) => {
-  const id = +req.params.id;
-  persons = persons.filter(p => p.id !== id);
-  console.log(persons);
-
-  res.status(204).end();
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id).then(result => {
+    res.status(204).end()
+  }).catch(error => next(error));
 })
 
 // Add person
@@ -110,6 +94,7 @@ const unknownEndpoint = (request, response) => {
 }
 
 app.use(unknownEndpoint)
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
