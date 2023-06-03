@@ -38,14 +38,13 @@ app.get('/api/persons', (req, res) => {
 
 // Get person
 app.get('/api/persons/:id', (req, res) => {
-  const id = +req.params.id;
-  const person = persons.find(p => p.id === id);
-
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end();
-  }
+  Person.findById(req.params.id).then(person => {
+    if (person) {
+      res.json(person)
+    } else {
+      res.status(404).end();
+    }
+  })
 })
 
 // Delete person
@@ -77,15 +76,23 @@ app.post('/api/persons', (req, res) => {
   })
 })
 
+app.put('api/persons/:id', (req, res) => {
+  const body = req.body;
+
+  Person.find({name: body.name}).then()
+})
+
 // Info page
 app.get('/info', (req, res) => {
-  const pInfo = `Phonebook has info for ${persons.length} people`;
-  const cDate = new Date();
-
-  res.send(`
-    <p>${pInfo}</p>
-    <p>${cDate}</p>
-  `)
+  Person.find({}).then(persons => {
+    const pInfo = `Phonebook has info for ${persons.length} people`;
+    const cDate = new Date();
+  
+    res.send(`
+      <p>${pInfo}</p>
+      <p>${cDate}</p>
+    `)
+  });
 })
 
 // Non-existent routes
