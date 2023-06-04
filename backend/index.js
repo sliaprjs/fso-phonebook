@@ -16,8 +16,11 @@ morgan.token('body', (req, res) => JSON.stringify(req.body));
 app.use(morgan(':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
 
 const errorHandler = (error, req, res, next) => {
-  if (error) {
-    return res.status(400).send({error: 'Wrong id'})
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
   next(error);
 };
@@ -59,7 +62,7 @@ const generateId = () => {
   return Math.floor((Math.random() * 1000))
 }
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
 
   if (body.name === undefined) {
@@ -73,7 +76,7 @@ app.post('/api/persons', (req, res) => {
 
   person.save().then(savedPerson => {
     res.json(savedPerson);
-  })
+  }).catch(error => (console.log(error)))
 })
 
 app.put('api/persons/:id', (req, res) => {
